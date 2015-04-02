@@ -1,0 +1,57 @@
+#!/bin/bash
+. $(dirname $0)/constants
+
+if [ $# -lt 1 ] ; then
+	echo "usage: $(fname $0) <ipfile> [<outfile>] [-slow]"
+	exit 1
+fi
+
+INPAR=inpar
+PINGVER=pingver
+
+SRC_IP_FILE=$1
+OUT_FILE=$2
+DELAY=1
+
+
+if [ "${OUT_FILE}" == "nofile" ] ; then
+	OUT_FILE=/dev/null
+fi
+
+
+if [ "$2" == "-slow" ] ||  [ "$2" == "slow" ] ; then
+	DELAY=3
+	echo SLOW2
+	OUT_FILE=""
+fi
+
+if [ "$3" == "-slow" ] ||  [ "$3" == "slow" ] ; then
+	DELAY=3
+	echo SLOW3
+fi
+
+if [ "${OUT_FILE}" == "" ] ; then
+	OUT_FILE=${SCANS_REPO}/detected-`date +%m%d%H%M`.csv
+fi
+
+if [ ! -e ${SCANS_REPO} ] ; then
+	mkdir ${SCANS_REPO} 
+fi
+
+
+if [ ! -e ${SRC_IP_FILE} ] ; then
+	echo "IP Addresses File ${IP_FILE} not found."
+	exit 3
+fi
+
+${INPAR} ${PINGVER} ${SRC_IP_FILE} -delay ${DELAY} 
+
+# select only raws that we accessed with ping
+echo "filtering results..."
+grep -v NO-PING ${SRC_IP_FILE}.log | tee -a ${OUT_FILE}
+
+echo "=============================================================="
+echo "  Scan Completed                                              "
+echo ".                                                             ."
+echo "  Results reside in file: ${OUT_FILE}  in a  csv(excel) format"
+echo "=============================================================="

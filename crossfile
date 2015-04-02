@@ -1,0 +1,18 @@
+#!/bin/bash
+
+. $(dirname $0)/constants
+
+if [ $# -lt 2 ]
+then
+        echo "Usage: $(fname $0) <looking-for-text-from-this-file> <in-this-file> "
+fi
+
+FIND_THIS_LIST=$1
+IN_THIS_LIST=$2
+
+while read LN
+do
+        grep ${LN} ${IN_THIS_LIST} 
+done < ${FIND_THIS_LIST}
+
+

@@ -1,0 +1,21 @@
+#!/bin/sh
+#  arguments: 
+#          1. 
+SRV_IP=10.0.0.252
+
+if [ ! "$1" == "" ] ; then
+	SRV_IP=$1
+fi
+
+CONF_FILE=/etc/cgminer.conf
+if [ -e /etc/cgminer.conf.template ] ; then
+	CONF_FILE=/etc/cgminer.conf.template
+fi
+
+cp ${CONF_FILE} ${CONF_FILE}.bu.`date +%m.%d.%Y_%H-%M-%S`
+
+TMF=$(mktemp)
+cat ${CONF_FILE} | sed 's/"W:127\.0\.0\.1[^"]*/"W:127.0.0.1,'${SRV_IP}'/' > ${TMF}
+cat ${TMF} > ${CONF_FILE}
+rm ${TMF}
+/usr/local/bin/spond-manager restart

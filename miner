@@ -1,0 +1,3 @@
+#!/bin/sh
+. $(dirname $0)/constants
+${SSHPASS_CMD} ${DEFAULT_USER}@${DEFAULT_SUBNET}.$1

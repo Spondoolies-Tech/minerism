@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Copyright 2014 remo@spondoolies-tech.com
+# updated        dima@spondoolies-tech.com
+
+. $(dirname $0)/constants
+
+valid_ip()
+{
+	
+	rc=0
+	text_ip=$1
+	test_ip=(${text_ip//\./\ })
+	if [ ${#test_ip[@]} -ne 4 ]
+	then
+		rc=2
+	else
+		for (( i=0 ; i<4 ; i++ ))
+		do
+			nible=${test_ip[$i]}
+			printf "%g" "$nible"  > /dev/null 2>&1
+			if [ $? -ne 0 ]
+			then
+				rc=3
+				break
+			fi
+			if [ $nible -lt 0 ] || [ $nible -gt 255 ] 
+			then
+				rc=1
+				break
+			fi
+		done
+	
+	fi
+
+	return $rc
+
+}
+
+LIST_OF_EXPOSED_MINERS=/tmp/full-`date +%m.%d.%Y_%H-%M-%S`
+
+# check that we have 2 parameters: first subnet in range and
+# number of subnets
+if [ ! "$#" -eq 2 ]
+then
+    echo "Wrong number of parameters"
+    echo "please run: $0 [first subnet in range] [number of subnets] # Class C only"
+    echo "example: $0 192.168.1.0 5 # will scan 192.168.{1..5}.0 range"
+    exit 1
+fi
+
+# we are working on class C only currently
+FIRST_SUBNETS_IN_RANGE=$1
+SUBNETS_RANGE=$2
+
+valid_ip ${FIRST_SUBNETS_IN_RANGE}
+VS=$?
+
+if [ $VS -ne 0 ] 
+then
+	echo "Subnet ${FIRST_SUBNETS_IN_RANGE} is not a valid IP address" > /dev/stderr
+	exit $VS
+fi
+
+sub_ip=(${FIRST_SUBNETS_IN_RANGE//\./\ })
+
+
+# calculate value of last subnet 
+let last_subnet_ip_index=${sub_ip[2]}+${SUBNETS_RANGE}-1
+
+echo  "last_subnet_ip_index  = $last_subnet_ip_index"
+# check and generate subnets ips file
+IPS_FILE="/tmp/IPS-${sub_ip[0]}_${sub_ip[1]}_${sub_ip[2]}_${last_subnet_ip_index}"
+if [ ! -f "${IPS_FILE}" ]
+then
+  echo "Creating IPS file ${IPS_FILE}"
+  for subnet in $(eval echo "${sub_ip[0]}.${sub_ip[1]}.{${sub_ip[2]}..${last_subnet_ip_index}}")
+  do
+    for ip in {0..255}
+    do
+#      echo "${subnet}.${ip} => ${IPS_FILE}"
+      echo ${subnet}.${ip} >> ${IPS_FILE}
+    done
+  done
+else
+  echo "IPS File ${IPS_FILE} Exist"
+fi
+echo "######## SCANNING SUBNETS ${sub_ip[1]}.${sub_ip[2]}.{${sub_ip[3]}..${last_subnet_ip_index}} #############"
+createdetected ${IPS_FILE} ${LIST_OF_EXPOSED_MINERS}
+
+# lets print path for results
+echo "file with IP ranges - ${IP_RANGES_OUTPUT_FILE}"
+echo "file with miners status - ${LIST_OF_EXPOSED_MINERS}"
