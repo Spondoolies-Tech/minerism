@@ -5,7 +5,7 @@ TIMES=$2
 DELAY=$3
 PREF="$4$(date +%d)"
 IPFILE=$1 
-
+SCRIPT=trg_miner_deep_conf.sh
 
 if [ $# -lt 3 ] ; then
 	echo not enogh params
@@ -43,8 +43,8 @@ fi
 
 for (( i=1; i<=$TIMES ; i++ ))
 do
-	echo " inpar -show pushndo.sh ${IPFILE} miner_deep_conf.sh | grep ^1 | tee ${SCANS_REPO}/${PREF}_$(date +%d%H%M)_${i}_of_${TIMES}.csv "
-	inpar -show pushndo.sh ${IPFILE} miner_deep_conf.sh | grep ^1 | tee ${SCANS_REPO}/${PREF}_$(date +%d%H%M)_${i}_of_${TIMES}.csv 
+	echo " inpar -show pushndo.sh ${IPFILE} ${SCRIPT} | grep ^1 | tee ${SCANS_REPO}/${PREF}_$(date +%d%H%M)_${i}_of_${TIMES}.csv "
+	inpar -show pushndo.sh ${IPFILE} ${SCRIPT} | grep ^1 | tee ${SCANS_REPO}/${PREF}_$(date +%d%H%M)_${i}_of_${TIMES}.csv 
  	if [ $i -lt ${TIMES} ] ; then
 		sleep ${DELAY}
 	fi
